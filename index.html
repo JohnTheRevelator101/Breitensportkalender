@@ -504,7 +504,7 @@ function renderMarkers(events) {
       <div class="popup-title">${e.titel||'–'}</div>
       <div class="popup-meta">${e.datum}${e.startzeit?' · '+e.startzeit+' Uhr':''}</div>
       <div class="popup-meta">${ort}</div>
-      <div class="popup-meta">${e.km||''}</div>
+      <div class="popup-meta">${e.startort}</div>
       ${past?'<div class="popup-past">Termin bereits vergangen</div>':''}
       <a class="popup-link" href="${e.url}" target="_blank">Details auf rad-net ↗</a>
     `);
