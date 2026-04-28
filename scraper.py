@@ -95,34 +95,27 @@ def scrape_detail(url):
             cells = row.find_all(["td", "th"])
             if len(cells) < 2:
                 continue
-label = cells[0].get_text(separator=" ", strip=True).lower()
-if "startort" in label or "start" in label:
-    # ... dein extraktions-code ...
-    value = cells[1].get_text(separator=" ", strip=True)
+            
+            label = cells[0].get_text(separator=" ", strip=True).lower()
+            value = cells[1].get_text(separator=" ", strip=True)
 
             if "startort" in label:
                 result["startort_adresse"] = value
                 
-                # TEST: Was sieht der Scraper? (Nach dem Durchlauf wieder löschen)
-                # print(f"DEBUG: Label: {label} | Value: {value}")
-
-                # Suche nach der PLZ irgendwo im String
+                # Suche nach der PLZ und Ort im String
                 m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
                 
                 if m:
                     plz = m.group(1)
                     ort_raw = m.group(2).strip()
-                    # Wir schneiden alles ab, was nach dem Stadtnamen kommt (wie "Route erstellen")
+                    # Bereinigt den Ortsnamen von Anhängseln wie "Route erstellen"
                     ort_clean = re.split(r'\s{2,}|Route|Sport|Halle|Gymnasium|Anfahrt', ort_raw)[0].strip()
                     result["startort"] = f"{plz} {ort_clean}"
                 else:
-                    # Falls der Ort VOR der PLZ steht oder anders getrennt ist
+                    # Fallback: Nur die PLZ extrahieren
                     m_plz_only = re.search(r'(\d{5})', value)
                     if m_plz_only:
-                        plz = m_plz_only.group(1)
-                        # Suche einen Ortsnamen NACH der PLZ, falls der obige Regex zu streng war
-                        # Wir nehmen hier einfach die nächsten Wörter
-                        result["startort"] = plz
+                        result["startort"] = m_plz_only.group(1)
 
             elif "startzeit" in label:
                 result["startzeit"] = value
