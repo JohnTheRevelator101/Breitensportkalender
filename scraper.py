@@ -146,4 +146,29 @@ def main():
         time.sleep(1.5)
 
     if not all_events:
-        print("Keine Termine gefunden. Möglicherweise sind für
+        print("Keine Termine gefunden. Möglicherweise sind für 2026 noch keine Daten online.")
+        return
+
+    print(f"\n{len(all_events)} Termine gefunden. Details und Geocoding starten...")
+
+    for i, event in enumerate(all_events):
+        # 1. Detail-Infos holen (PLZ/Ort)
+        search_string = scrape_detail(event)
+        time.sleep(0.5)
+        
+        # 2. Geocoding
+        if search_string:
+            print(f"  [{i+1}/{len(all_events)}] Geocodiere: {search_string}")
+            coords = geocode(search_string)
+            if coords:
+                event["lat"] = coords["lat"]
+                event["lng"] = coords["lng"]
+
+    # Speichern
+    with open("events.json", "w", encoding="utf-8") as f:
+        json.dump(all_events, f, ensure_ascii=False, indent=2)
+
+    print(f"\nFertig! {len(all_events)} Termine gespeichert.")
+
+if __name__ == "__main__":
+    main()
