@@ -1,0 +1,37 @@
+name: Termine aktualisieren
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Jeden Tag um 3 Uhr nachts
+  workflow_dispatch:      # Auch manuell startbar
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Abhängigkeiten installieren
+        run: pip install requests beautifulsoup4
+
+      - name: Scraper ausführen
+        run: python scraper.py
+
+      - name: Geocoding reparieren
+        run: python geocode_repair.py
+
+      - name: events.json committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add events.json
+          git diff --staged --quiet || git commit -m "Termine aktualisiert $(date '+%d.%m.%Y')"
+          git pull --rebase origin main
+          git push
