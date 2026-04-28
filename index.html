@@ -245,6 +245,17 @@
       .filters input[type=date] { display: none; }
       .logo-sub { display: none; }
     }
+
+
+    .user-location-dot {
+  width: 12px;
+  height: 12px;
+  background: #2196F3;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
+}
+    
   </style>
 </head>
 <body>
@@ -508,6 +519,49 @@ document.getElementById("filter-typ").addEventListener("change", applyFilters);
 document.getElementById("filter-von").addEventListener("change", applyFilters);
 document.getElementById("filter-bis").addEventListener("change", applyFilters);
 document.getElementById("toggle-past").addEventListener("change", applyFilters);
+
+
+  // Funktion zur Standortbestimmung
+function locateUser() {
+  if (!navigator.geolocation) {
+    console.log("Geolocation wird von deinem Browser nicht unterstützt.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      
+      // Blauen Punkt für User-Standort erstellen
+      const userIcon = L.divIcon({
+        className: 'user-location-dot',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+
+      // Marker zur Karte hinzufügen
+      L.marker([latitude, longitude], { icon: userIcon })
+        .addTo(map)
+        .bindPopup("Dein Standort")
+        .openPopup();
+
+      // Karte auf den User zentrieren (optional)
+      // map.setView([latitude, longitude], 10); 
+    },
+    (error) => {
+      console.warn(`Standortfehler (${error.code}): ${error.message}`);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0
+    }
+  );
+}
+
+// Standort direkt beim Laden abfragen
+locateUser();
+  
 </script>
 
 </body>
