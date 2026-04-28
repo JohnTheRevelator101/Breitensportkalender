@@ -5,7 +5,7 @@
     "typ": "rtf",
     "km": "154",
     "verein": "Radsportclub Wunstorf von 1983 e.V.",
-    "startort": "31515 Wunstorf",
+    "startort": "31515 Wunstorf Hanisch Kreisel",
     "startort_adresse": "Emanuel Grund Str. 31515 Wunstorf Hanisch Kreisel Route erstellen",
     "startzeit": "keine Angabe, bitte erfragen",
     "webseite": "http://www.rscwunstorf.de",
@@ -1346,8 +1346,8 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/7berger-fruehjahrs-rtf;9976256.html",
-    "lat": 52.3078258,
-    "lng": 9.8146181
+    "lat": 52.3077423,
+    "lng": 9.8132829
   },
   {
     "titel": "7Berge-Frühjahrs-Gravelride",
@@ -1361,8 +1361,8 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/7berge-fruehjahrs-gravelride;9976257.html",
-    "lat": 52.3078258,
-    "lng": 9.8146181
+    "lat": 52.3077423,
+    "lng": 9.8132829
   },
   {
     "titel": "45. Ruhrtal RTF",
@@ -2231,8 +2231,8 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/erftstadt-venn-radmarathon;9975785.html",
-    "lat": 51.4392597,
-    "lng": 6.6650636
+    "lat": 51.440415,
+    "lng": 6.6640615
   },
   {
     "titel": "Rund um Erftstadt",
@@ -2246,8 +2246,8 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/rund-um-erftstadt;9976048.html",
-    "lat": 51.4392597,
-    "lng": 6.6650636
+    "lat": 51.440415,
+    "lng": 6.6640615
   },
   {
     "titel": "Marathon",
@@ -2261,8 +2261,8 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/erftstadt-venn-radmarathon;9976049.html",
-    "lat": 51.4392597,
-    "lng": 6.6650636
+    "lat": 51.440415,
+    "lng": 6.6640615
   },
   {
     "titel": "38. Rheiner Emsköppken-Tour - TMT",
@@ -9371,7 +9371,7 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/53.-bodensee-radmarathon;9976812.html",
-    "lat": 52.3958253,
+    "lat": 52.3958254,
     "lng": 13.0462741
   },
   {
@@ -9386,7 +9386,7 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/53.-bodensee-radmarathon;9976813.html",
-    "lat": 52.3958253,
+    "lat": 52.3958254,
     "lng": 13.0462741
   },
   {
@@ -9611,7 +9611,7 @@
     "webseite": "",
     "landesverband": "",
     "url": "https://breitensport.rad-net.de/breitensportkalender/termine/2026/saint-gravel@bodensee;9976814.html",
-    "lat": 52.3958253,
+    "lat": 52.3958254,
     "lng": 13.0462741
   },
   {
