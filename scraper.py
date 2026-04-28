@@ -226,7 +226,7 @@ def main():
 
     # Schritt 1: Übersicht scrapen (Begrenzt auf die ersten Seiten zum Testen)
     print("\nSchritt 1: Lade Termine...")
-    for start in range(0, 120, 30): # Lädt die ersten 120 Einträge
+    for start in range(0, 750, 30): # Lädt die ersten 120 Einträge
         print(f"  Seite {start//30 + 1}...")
         events = scrape_page(start)
         if not events:
