@@ -77,7 +77,6 @@ def parse_typ(text):
     return TYPE_KEYWORDS.get(text.lower().strip(), "rtf")
 
 def scrape_detail(url):
-    """Holt Startort aus der Detailseite - robuste Version"""
     result = {
         "startort": "",
         "startort_adresse": "",
@@ -89,40 +88,44 @@ def scrape_detail(url):
         resp = requests.get(url, headers=HEADERS, timeout=15)
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Methode 1: Tabelle mit th/td Paaren
         rows = soup.find_all("tr")
         for row in rows:
             cells = row.find_all(["td", "th"])
             if len(cells) < 2:
                 continue
             
-            label = cells[0].get_text(strip=True).lower().rstrip(":")
+            label = cells[0].get_text(strip=True).lower()
+            # Wir nutzen separator=" ", damit <br> zu Leerzeichen werden
             value = cells[1].get_text(separator=" ", strip=True)
 
             if "startort" in label:
                 result["startort_adresse"] = value
-                # Dieser Block sucht die PLZ NUR, wenn das Label "startort" ist
+                # Suche PLZ und Ort
                 m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
                 if m:
                     plz = m.group(1)
                     ort_raw = m.group(2).strip()
+                    # Alles nach dem Ort (Halle, Route etc.) abschneiden
                     ort_clean = re.split(r'\s{2,}|Route|Sport|Halle|Gymnasium|Schule|Anfahrt', ort_raw)[0].strip()
                     result["startort"] = f"{plz} {ort_clean}"
                 else:
+                    # Notfall: Nur PLZ
                     m2 = re.search(r'(\d{5})', value)
                     if m2:
                         result["startort"] = m2.group(1)
 
             elif "startzeit" in label:
                 result["startzeit"] = value
-
             elif "internet" in label:
                 link = cells[1].find("a")
-                if link:
-                    result["webseite"] = link.get("href", "")
-
+                if link: result["webseite"] = link.get("href", "")
             elif "landesverband" in label:
                 result["landesverband"] = value
+
+    except Exception as e:
+        print(f"    Fehler bei URL {url}: {e}")
+    
+    return result
 
         # Methode 2: Wettervorhersage-Text als Fallback
         if not result["startort"]:
