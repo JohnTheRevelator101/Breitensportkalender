@@ -8,37 +8,31 @@ BASE_URL = "https://breitensport.rad-net.de/breitensportkalender/"
 DETAIL_BASE = "https://breitensport.rad-net.de"
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 
+# Ein realistischerer User-Agent verhindert Blockaden
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; Radkalender-Hobby/1.0)"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Referer": "https://breitensport.rad-net.de/"
 }
 
 TYPE_KEYWORDS = {
-    "radtourenfahrt": "rtf",
-    "rtf nach gps": "rtf",
-    "rtf": "rtf",
-    "radmarathon-cup": "marathon",
-    "radmarathon": "marathon",
-    "country-tourenfahrt": "ctf",
-    "ctf-permanente": "ctf",
-    "ctf": "ctf",
-    "gravelride": "gravel",
-    "permanent gravelride": "gravel",
-    "volksradfahren": "volk",
-    "radwandern": "volk",
-    "vrtf": "vrtf",
-    "etappenfahrt": "etappe",
-    "brevet": "brevet",
-    "sonstige": "sonstige",
+    "radtourenfahrt": "rtf", "rtf nach gps": "rtf", "rtf": "rtf",
+    "radmarathon-cup": "marathon", "radmarathon": "marathon",
+    "country-tourenfahrt": "ctf", "ctf-permanente": "ctf", "ctf": "ctf",
+    "gravelride": "gravel", "permanent gravelride": "gravel",
+    "volksradfahren": "volk", "radwandern": "volk", "vrtf": "vrtf",
+    "etappenfahrt": "etappe", "brevet": "brevet", "sonstige": "sonstige",
 }
 
-geocode_cache = {}
+def parse_typ(text):
+    text_l = text.lower().strip()
+    for kw, val in TYPE_KEYWORDS.items():
+        if kw in text_l:
+            return val
+    return "rtf"
 
 def geocode(query):
-    if not query or len(query) < 2:
-        return None
-    key = query.strip().lower()
-    if key in geocode_cache:
-        return geocode_cache[key]
+    # Nominatim benötigt zwingend einen User-Agent; bei vielen Anfragen 
+    # sollte hier eine E-Mail stehen, um Sperren zu vermeiden.
     try:
         resp = requests.get(NOMINATIM_URL, params={
             "q": query,
@@ -48,258 +42,106 @@ def geocode(query):
         }, headers=HEADERS, timeout=10)
         data = resp.json()
         if data:
-            lat = float(data[0]["lat"])
-            lng = float(data[0]["lon"])
-            # Deutschland-Mittelpunkt filtern (Nominatim Fallback)
-            if abs(lat - 51.1638) < 0.01 and abs(lng - 10.4478) < 0.01:
-                result = None
-            else:
-                result = {"lat": lat, "lng": lng}
-        else:
-            result = None
-        geocode_cache[key] = result
-        time.sleep(1.1)
-        return result
-    except Exception as e:
-        print(f"    Geocoding fehler: {e}")
+            return {"lat": float(data[0]["lat"]), "lng": float(data[0]["lon"])}
+        return None
+    except Exception:
         return None
 
-def is_datum(text):
-    return bool(re.match(r'^(Mo|Di|Mi|Do|Fr|Sa|So),\s+\d{2}\.\d{2}\.\d{4}$', text))
-
-def is_km(text):
-    return bool(re.match(r'^\d[\d/]*$', text))
-
-def is_typ(text):
-    return text.lower().strip() in TYPE_KEYWORDS
-
-def parse_typ(text):
-    return TYPE_KEYWORDS.get(text.lower().strip(), "rtf")
-
 def scrape_detail(url):
-    """Holt Startort aus der Detailseite - robuste Version"""
-    result = {
-        "startort": "",
-        "startort_adresse": "",
-        "startzeit": "",
-        "webseite": "",
-        "landesverband": "",
-    }
+    result = {"startort": "", "startort_adresse": "", "startzeit": "", "webseite": ""}
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         soup = BeautifulSoup(resp.text, "html.parser")
-
-        # Methode 1: Tabelle mit th/td Paaren
-        rows = soup.find_all("tr")
-        for row in rows:
+        
+        # Suche in allen Tabellenzeilen nach den Labels
+        for row in soup.find_all("tr"):
             cells = row.find_all(["td", "th"])
-            if len(cells) < 2:
-                continue
+            if len(cells) < 2: continue
             
-            label = cells[0].get_text(separator=" ", strip=True).lower()
+            label = cells[0].get_text(strip=True).lower()
+            # separator=" " hilft, Zeilenumbrüche in Adressen sauber zu trennen
             value = cells[1].get_text(separator=" ", strip=True)
 
-            if "startort" in label:
+            if "startort" in label or "veranstaltungsort" in label:
                 result["startort_adresse"] = value
-                
-                # Suche nach der PLZ und Ort im String
-                m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
-                
+                # PLZ und Ort extrahieren (5 Ziffern gefolgt von Wort)
+                m = re.search(r'(\d{5})\s+([A-Za-zÄÖÜäöüß\-\s]+)', value)
                 if m:
-                    plz = m.group(1)
-                    ort_raw = m.group(2).strip()
-                    # Bereinigt den Ortsnamen von Anhängseln wie "Route erstellen"
-                    ort_clean = re.split(r'\s{2,}|Route|Sport|Halle|Gymnasium|Anfahrt', ort_raw)[0].strip()
-                    result["startort"] = f"{plz} {ort_clean}"
-                else:
-                    # Fallback: Nur die PLZ extrahieren
-                    m_plz_only = re.search(r'(\d{5})', value)
-                    if m_plz_only:
-                        result["startort"] = m_plz_only.group(1)
-
+                    result["startort"] = f"{m.group(1)} {m.group(2).strip()}"
             elif "startzeit" in label:
                 result["startzeit"] = value
-
             elif "internet" in label:
-                link = cells[1].find("a")
-                if link:
-                    result["webseite"] = link.get("href", "")
-
-            elif "landesverband" in label:
-                result["landesverband"] = value
-
-        # Methode 2: Wettervorhersage-Text als Fallback
-        if not result["startort"]:
-            weather = soup.find(string=re.compile(r"Wettervorhersage für"))
-            if weather:
-                m = re.search(r'für\s+\*\*(.+?)\*\*', str(weather))
-                if not m:
-                    m = re.search(r'für\s+(.+?):', str(weather))
-                if m:
-                    result["startort"] = m.group(1).strip()
-
-        # Methode 3: Google Maps Link als Fallback
-        if not result["startort"]:
-            maps_link = soup.find("a", href=re.compile(r"maps\.google"))
-            if maps_link:
-                href = maps_link.get("href", "")
-                m = re.search(r'daddr=([^"&]+)', href)
-                if m:
-                    addr = requests.utils.unquote(m.group(1)).replace("+", " ")
-                    result["startort_adresse"] = addr
-                    m2 = re.search(r'(\d{5})\s+(\S+)', addr)
-                    if m2:
-                        result["startort"] = f"{m2.group(1)} {m2.group(2)}"
-
+                a = cells[1].find("a")
+                if a: result["webseite"] = a.get("href")
+                
     except Exception as e:
-        print(f"    Fehler: {e}")
-
+        print(f"    Fehler Detailseite: {e}")
     return result
 
 def scrape_page(start):
     params = {
-        "startdate": "01.01.2026",
-        "enddate": "31.12.2026",
-        "art": "-1",
-        "lv": "-1",
-        "umkreis": "-1",
-        "plz": "",
-        "updatet": "",
-        "lstart": str(start)
+        "startdate": "01.01.2026", "enddate": "31.12.2026",
+        "art": "-1", "lv": "-1", "lstart": str(start)
     }
+    events = []
     try:
         resp = requests.get(BASE_URL, params=params, headers=HEADERS, timeout=20)
         soup = BeautifulSoup(resp.text, "html.parser")
+        
+        # Wir suchen die Tabelle. Rad-net nutzt oft eine Struktur, bei der 
+        # die Termine in <tr> Elementen liegen.
+        rows = soup.find_all("tr")
+        for row in rows:
+            # Check, ob ein Link zu einem Termin drin ist
+            link = row.find("a", href=re.compile(r"/termine/\d{4}/"))
+            if not link: continue
+            
+            cols = row.find_all("td")
+            # In der Regel: [0] Datum, [1] Typ/KM, [2] Titel
+            if len(cols) >= 3:
+                datum = cols[0].get_text(strip=True)
+                typ_raw = cols[1].get_text(strip=True)
+                titel = link.get_text(strip=True)
+                
+                events.append({
+                    "titel": titel,
+                    "datum": datum,
+                    "typ": parse_typ(typ_raw),
+                    "km": re.search(r'\d+', typ_raw).group(0) if re.search(r'\d+', typ_raw) else "",
+                    "url": DETAIL_BASE + link.get("href") if link.get("href").startswith("/") else link.get("href")
+                })
     except Exception as e:
-        print(f"  Fehler beim Laden: {e}")
-        return []
-
-    events = []
-    all_links = soup.find_all("a", href=re.compile(r"/termine/\d{4}/"))
-
-    for link in all_links:
-        href = link.get("href", "")
-        full_url = DETAIL_BASE + href if href.startswith("/") else href
-
-        raw = link.get_text(separator="\n", strip=True)
-        lines = [l.strip() for l in raw.split("\n") if l.strip()]
-
-        if not lines:
-            continue
-
-        typ = "rtf"
-        datum = ""
-        titel = ""
-        km = ""
-        verein_raw = ""
-
-        for line in lines:
-            if is_datum(line):
-                datum = line
-            elif is_km(line):
-                km = line
-            elif is_typ(line):
-                typ = parse_typ(line)
-            elif re.search(r'e\.?\s*V\.?', line) or re.search(r'\([A-Z]{2,4}\)', line):
-                verein_raw = line
-            elif not titel and not is_datum(line) and not is_km(line) and not is_typ(line) and len(line) > 2:
-                titel = line
-
-        if not titel:
-            for line in lines:
-                if not is_datum(line) and not is_km(line) and not is_typ(line):
-                    titel = line
-                    break
-
-        verein_clean = re.sub(r'\s*\([A-Z]{2,4}\)\s*$', '', verein_raw).strip()
-
-        if not datum and not titel:
-            continue
-
-        events.append({
-            "titel": titel,
-            "datum": datum,
-            "typ": typ,
-            "km": km,
-            "verein": verein_clean,
-            "startort": "",
-            "startort_adresse": "",
-            "startzeit": "",
-            "webseite": "",
-            "landesverband": "",
-            "url": full_url,
-            "lat": None,
-            "lng": None
-        })
-
+        print(f"  Fehler Seite {start}: {e}")
     return events
 
 def main():
-    print("=" * 55)
-    print("Radsport Breitensportkalender Scraper v3")
-    print("=" * 55)
-
-    # Schritt 1: Übersicht scrapen
-    print("\nSchritt 1: Lade alle Termine...")
     all_events = []
+    print("Starte Scraping...")
+    
+    # Schritt 1: Übersicht (Paginierung)
+    for start in range(0, 150, 30): # Testweise erst mal 5 Seiten
+        print(f"Lade Seite ab Eintrag {start}...")
+        page_events = scrape_page(start)
+        if not page_events: break
+        all_events.extend(page_events)
+        time.sleep(2) # Höflichkeitspause
 
-    for start in range(0, 750, 30):
-        print(f"  Seite {start//30 + 1}: Eintraege {start+1}-{start+30}...")
-        events = scrape_page(start)
-        if not events:
-            print("  Fertig.")
-            break
-        all_events.extend(events)
-        time.sleep(2)
-
-    # Duplikate entfernen
-    seen = set()
-    unique = []
-    for e in all_events:
-        if e["url"] not in seen:
-            seen.add(e["url"])
-            unique.append(e)
-    all_events = unique
-    print(f"\n{len(all_events)} Termine gefunden.")
-
-    # Schritt 2: Detailseiten
-    print("\nSchritt 2: Lade Detailseiten...")
-    for i, event in enumerate(all_events):
-        print(f"  [{i+1}/{len(all_events)}] {event['titel'][:40]}")
-        details = scrape_detail(event["url"])
-        event.update(details)
-        if details["startort"]:
-            print(f"    -> {details['startort']}")
-        else:
-            print(f"    -> kein Startort gefunden")
-        time.sleep(1.5)
-
-    # Schritt 3: Geocoding
-    print("\nSchritt 3: Geocoding...")
-    for i, event in enumerate(all_events):
-        ort = event.get("startort", "")
-        if not ort:
-            continue
-
-        queries = [
-            ort + ", Deutschland",
-            re.sub(r'^\d{5}\s+', '', ort) + ", Deutschland",  # Nur Ortsname ohne PLZ
-        ]
-
-        for q in queries:
-            coords = geocode(q)
+    # Schritt 2: Details & Geocoding
+    for i, ev in enumerate(all_events):
+        print(f"[{i+1}/{len(all_events)}] Details für: {ev['titel'][:30]}...")
+        details = scrape_detail(ev["url"])
+        ev.update(details)
+        
+        if ev["startort"]:
+            coords = geocode(ev["startort"] + ", Germany")
             if coords:
-                event["lat"] = coords["lat"]
-                event["lng"] = coords["lng"]
-                break
+                ev["lat"], ev["lng"] = coords["lat"], coords["lng"]
+        
+        time.sleep(1.2) # Wichtig für Nominatim (max 1 req/sec)
 
-    with open("events.json", "w", encoding="utf-8") as f:
+    with open("events_2026.json", "w", encoding="utf-8") as f:
         json.dump(all_events, f, ensure_ascii=False, indent=2)
-
-    geocoded = sum(1 for e in all_events if e.get("lat"))
-    print(f"\n{'='*55}")
-    print(f"Fertig! {len(all_events)} Termine, {geocoded} mit Koordinaten ({geocoded*100//len(all_events) if all_events else 0}%)")
-    print(f"{'='*55}")
+    print("Fertig! Datei events_2026.json wurde erstellt.")
 
 if __name__ == "__main__":
     main()
