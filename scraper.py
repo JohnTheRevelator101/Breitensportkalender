@@ -100,37 +100,30 @@ def scrape_detail(url):
 
             if "startort" in label:
                 result["startort_adresse"] = value
-    
-            # 1. Suche nach 5 Ziffern (PLZ) und dem Wort danach (Ort)
-            # Erlaubt auch Bindestriche und Leerzeichen im Ortsnamen
+                
+                # AB HIER MUSS ALLES EINGERÜCKT SEIN (4 Leerzeichen weiter rechts als das 'if')
                 m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
-            
                 if m:
                     plz = m.group(1)
                     ort_raw = m.group(2).strip()
-                
-                # 2. Den Ort "säubern": Alles abschneiden, was nach dem Ort kommt
-                # Wir splitten bei typischen Nachfolgewörtern oder mehreren Leerzeichen
                     ort_clean = re.split(r'\s{2,}|Route|Sport|Halle|Gymnasium|Schule|Anfahrt', ort_raw)[0].strip()
-                
-                # 3. Ergebnis zusammensetzen
                     result["startort"] = f"{plz} {ort_clean}"
                 else:
-                # Fallback: Nur die PLZ extrahieren, falls der Rest zu komplex ist
                     m2 = re.search(r'(\d{5})', value)
                     if m2:
                         result["startort"] = m2.group(1)
+                # ENDE DES EINGERÜCKTEN BLOCKS
 
             elif "startzeit" in label:
                 result["startzeit"] = value
 
-            elif "internet" in label:
-                link = cells[1].find("a")
+                elif "internet" in label:
+                    link = cells[1].find("a")
                 if link:
                     result["webseite"] = link.get("href", "")
 
-            elif "landesverband" in label:
-                result["landesverband"] = value
+                elif "landesverband" in label:
+                    result["landesverband"] = value
 
         # Methode 2: Wettervorhersage-Text als Fallback
         if not result["startort"]:
