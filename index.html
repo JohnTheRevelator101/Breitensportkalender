@@ -255,6 +255,19 @@
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
 }
+
+    /* Styling für die neue Orts-Zeile */
+.event-location-row {
+  font-size: 11px;
+  color: #888; /* Ein mittleres Grau, gut lesbar */
+  margin-top: 1px;
+  transition: color 0.3s;
+}
+
+/* Im Dark Mode etwas heller */
+body.dark .event-location-row {
+  color: #777;
+}
     
   </style>
 </head>
@@ -460,17 +473,24 @@ function renderList(events) {
   list.innerHTML = events.map(e => {
     const past = isPast(e);
     const color = past ? "#888" : (COLORS[e.typ] || COLORS.sonstige);
-    const ort = e.startort || e.ort || "";
+    
+    // Hier definieren wir, was in der Meta-Zeile (Datum) 
+    // und was in der neuen Orts-Zeile stehen soll
+    const plz = e.plz || "";
+    const stadt = e.startort || e.ort || "";
+    const ortsInfo = `${plz} ${stadt}`.trim();
+
     return `<a class="event-item${past?' past':''}" href="${e.url}" target="_blank">
       <div class="event-dot" style="background:${color}"></div>
       <div class="event-info">
-        <div class="event-name">${e.titel || e.datum || '–'}</div>
-        <div class="event-meta">${e.datum}${ort?' · '+ort:''}</div>
-        <div class="event-km">${e.km||''}</div>
+        <div class="event-name">${e.titel || 'Unbenannter Termin'}</div>
+        <div class="event-meta">${e.datum}</div>
+        <div class="event-location-row">${ortsInfo || 'Ort unbekannt'}</div>
       </div>
       <div class="ext">↗</div>
     </a>`;
   }).join("");
+  
 }
 
 function renderMarkers(events) {
