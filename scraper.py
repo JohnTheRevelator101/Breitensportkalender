@@ -235,7 +235,7 @@ def main():
     print("\nSchritt 1: Lade alle Termine...")
     all_events = []
 
-    for start in range(0, 750, 30):
+    for start in range(0, 60, 30):
         print(f"  Seite {start//30 + 1}: Eintraege {start+1}-{start+30}...")
         events = scrape_page(start)
         if not events:
