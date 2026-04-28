@@ -122,12 +122,13 @@ def scrape_detail(url):
             elif "landesverband" in label:
                 result["landesverband"] = value
 
-    except Exception as e:
-        print(f"    Fehler bei URL {url}: {e}")
+            except Exception as e:
+                print(f"    Fehler bei URL {url}: {e}")
     
-    return result
+            return result
 
         # Methode 2: Wettervorhersage-Text als Fallback
+        
         if not result["startort"]:
             weather = soup.find(string=re.compile(r"Wettervorhersage für"))
             if weather:
