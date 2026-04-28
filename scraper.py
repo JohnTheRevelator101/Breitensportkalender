@@ -95,13 +95,13 @@ def scrape_detail(url):
             cells = row.find_all(["td", "th"])
             if len(cells) < 2:
                 continue
+            
             label = cells[0].get_text(strip=True).lower().rstrip(":")
             value = cells[1].get_text(separator=" ", strip=True)
 
             if "startort" in label:
                 result["startort_adresse"] = value
-                
-                # AB HIER MUSS ALLES EINGERÜCKT SEIN (4 Leerzeichen weiter rechts als das 'if')
+                # Dieser Block sucht die PLZ NUR, wenn das Label "startort" ist
                 m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
                 if m:
                     plz = m.group(1)
@@ -112,18 +112,17 @@ def scrape_detail(url):
                     m2 = re.search(r'(\d{5})', value)
                     if m2:
                         result["startort"] = m2.group(1)
-                # ENDE DES EINGERÜCKTEN BLOCKS
 
             elif "startzeit" in label:
                 result["startzeit"] = value
 
-                elif "internet" in label:
-                    link = cells[1].find("a")
+            elif "internet" in label:
+                link = cells[1].find("a")
                 if link:
                     result["webseite"] = link.get("href", "")
 
-                elif "landesverband" in label:
-                    result["landesverband"] = value
+            elif "landesverband" in label:
+                result["landesverband"] = value
 
         # Methode 2: Wettervorhersage-Text als Fallback
         if not result["startort"]:
