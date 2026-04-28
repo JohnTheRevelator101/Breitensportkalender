@@ -56,7 +56,7 @@ def scrape_page(start):
     url = BASE_URL
     params = {
         "startdate": "01.01.2026",
-        "enddate": "31.12.2026",
+        "enddate": "30.05.2026",
         "art": "-1",
         "lv": "-1",
         "umkreis": "-1",
