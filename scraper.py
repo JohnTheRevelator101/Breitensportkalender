@@ -100,11 +100,21 @@ def scrape_detail(url):
 
             if "startort" in label:
                 result["startort_adresse"] = value
-                # PLZ + Ort extrahieren
-                m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß][^\d\n]+?)(?:\s+Route|\s+Sport|\s+Halle|\s*$)', value)
+                
+                # Verbesserter Regex: 
+                # Sucht 5 Ziffern, gefolgt von optionalem Space, 
+                # gefolgt vom Ortsnamen (bis zum nächsten relevanten Umbruch oder Sonderwort)
+                m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
+                
                 if m:
-                    result["startort"] = f"{m.group(1)} {m.group(2).strip().rstrip(',').strip()}"
+                    plz = m.group(1)
+                    # Wir bereinigen den Ort von nachfolgenden Hallennamen/Zusätzen
+                    ort_raw = m.group(2).strip()
+                    # Stoppe beim ersten Zeilenumbruch oder markanten Begriffen, falls sie im String gelandet sind
+                    ort_clean = re.split(r'\s{2,}|Route|Sport|Halle|Gymnasium', ort_raw)[0].strip()
+                    result["startort"] = f"{plz} {ort_clean}"
                 else:
+                    # Notfall-Suche: Nur die PLZ finden
                     m2 = re.search(r'(\d{5})', value)
                     if m2:
                         result["startort"] = m2.group(1)
