@@ -95,8 +95,10 @@ def scrape_detail(url):
             cells = row.find_all(["td", "th"])
             if len(cells) < 2:
                 continue
-            label = cells[0].get_text(strip=True).lower().rstrip(":")
-            value = cells[1].get_text(separator=" ", strip=True)
+label = cells[0].get_text(separator=" ", strip=True).lower()
+if "startort" in label or "start" in label:
+    # ... dein extraktions-code ...
+    value = cells[1].get_text(separator=" ", strip=True)
 
             if "startort" in label:
                 result["startort_adresse"] = value
