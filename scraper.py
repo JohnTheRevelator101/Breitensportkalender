@@ -50,7 +50,7 @@ def geocode(query):
         if data:
             lat = float(data[0]["lat"])
             lng = float(data[0]["lon"])
-            # Deutschland-Mittelpunkt filtern (Nominatim Fallback)
+            # Deutschland-Mittelpunkt filtern
             if abs(lat - 51.1638) < 0.01 and abs(lng - 10.4478) < 0.01:
                 result = None
             else:
@@ -75,7 +75,6 @@ def is_typ(text):
 
 def parse_typ(text):
     return TYPE_KEYWORDS.get(text.lower().strip(), "rtf")
-
 
 def scrape_detail(url):
     """Holt Startort aus der Detailseite - robuste Version"""
@@ -125,55 +124,25 @@ def scrape_detail(url):
             elif "landesverband" in label:
                 result["landesverband"] = value
 
-        # Methode 2: Wettervorhersage-Text als Fallback (falls Tabelle nichts lieferte)
+        # Methode 2: Wettervorhersage-Text als Fallback
         if not result["startort"]:
             weather = soup.find(string=re.compile(r"Wettervorhersage für"))
             if weather:
-                m = re.search(r'für\s+\*\*(.+?)\*\*', str(weather))
-                if not m:
-                    m = re.search(r'für\s+(.+?):', str(weather))
-                if m:
-                    result["startort"] = m.group(1).strip()
+                m_weather = re.search(r'für\s+\*\*(.+?)\*\*', str(weather))
+                if not m_weather:
+                    m_weather = re.search(r'für\s+(.+?):', str(weather))
+                if m_weather:
+                    result["startort"] = m_weather.group(1).strip()
 
     except Exception as e:
         print(f"    Fehler bei URL {url}: {e}")
 
     return result
 
-    
-        # Methode 2: Wettervorhersage-Text als Fallback
-        
-        if not result["startort"]:
-            weather = soup.find(string=re.compile(r"Wettervorhersage für"))
-            if weather:
-                m = re.search(r'für\s+\*\*(.+?)\*\*', str(weather))
-                if not m:
-                    m = re.search(r'für\s+(.+?):', str(weather))
-                if m:
-                    result["startort"] = m.group(1).strip()
-
-        # Methode 3: Google Maps Link als Fallback
-        if not result["startort"]:
-            maps_link = soup.find("a", href=re.compile(r"maps\.google"))
-            if maps_link:
-                href = maps_link.get("href", "")
-                m = re.search(r'daddr=([^"&]+)', href)
-                if m:
-                    addr = requests.utils.unquote(m.group(1)).replace("+", " ")
-                    result["startort_adresse"] = addr
-                    m2 = re.search(r'(\d{5})\s+(\S+)', addr)
-                    if m2:
-                        result["startort"] = f"{m2.group(1)} {m2.group(2)}"
-
-    except Exception as e:
-        print(f"    Fehler: {e}")
-
-    return result
-
 def scrape_page(start):
     params = {
         "startdate": "01.01.2026",
-        "enddate": "30.06.2026",
+        "enddate": "31.12.2026",
         "art": "-1",
         "lv": "-1",
         "umkreis": "-1",
@@ -250,23 +219,21 @@ def scrape_page(start):
 
 def main():
     print("=" * 55)
-    print("Radsport Breitensportkalender Scraper v3")
+    print("Radsport Breitensportkalender Scraper v3.1")
     print("=" * 55)
 
-    # Schritt 1: Übersicht scrapen
-    print("\nSchritt 1: Lade alle Termine...")
     all_events = []
 
-    for start in range(0, 60, 30):
-        print(f"  Seite {start//30 + 1}: Eintraege {start+1}-{start+30}...")
+    # Schritt 1: Übersicht scrapen (Begrenzt auf die ersten Seiten zum Testen)
+    print("\nSchritt 1: Lade Termine...")
+    for start in range(0, 120, 30): # Lädt die ersten 120 Einträge
+        print(f"  Seite {start//30 + 1}...")
         events = scrape_page(start)
         if not events:
-            print("  Fertig.")
             break
         all_events.extend(events)
-        time.sleep(2)
+        time.sleep(1)
 
-    # Duplikate entfernen
     seen = set()
     unique = []
     for e in all_events:
@@ -277,7 +244,7 @@ def main():
     print(f"\n{len(all_events)} Termine gefunden.")
 
     # Schritt 2: Detailseiten
-    print("\nSchritt 2: Lade Detailseiten...")
+    print("\nSchritt 2: Lade Detailseiten (PLZ/Ort)...")
     for i, event in enumerate(all_events):
         print(f"  [{i+1}/{len(all_events)}] {event['titel'][:40]}")
         details = scrape_detail(event["url"])
@@ -286,7 +253,7 @@ def main():
             print(f"    -> {details['startort']}")
         else:
             print(f"    -> kein Startort gefunden")
-        time.sleep(1.5)
+        time.sleep(1.2)
 
     # Schritt 3: Geocoding
     print("\nSchritt 3: Geocoding...")
@@ -297,7 +264,7 @@ def main():
 
         queries = [
             ort + ", Deutschland",
-            re.sub(r'^\d{5}\s+', '', ort) + ", Deutschland",  # Nur Ortsname ohne PLZ
+            re.sub(r'^\d{5}\s+', '', ort) + ", Deutschland",
         ]
 
         for q in queries:
@@ -311,9 +278,8 @@ def main():
         json.dump(all_events, f, ensure_ascii=False, indent=2)
 
     geocoded = sum(1 for e in all_events if e.get("lat"))
-    print(f"\n{'='*55}")
-    print(f"Fertig! {len(all_events)} Termine, {geocoded} mit Koordinaten ({geocoded*100//len(all_events) if all_events else 0}%)")
-    print(f"{'='*55}")
+    print(f"\nFertig! {len(all_events)} Termine gespeichert.")
+    print(f"Geocoding Quote: {geocoded}/{len(all_events)}")
 
 if __name__ == "__main__":
     main()
