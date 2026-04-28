@@ -151,7 +151,7 @@ def scrape_detail(url):
 def scrape_page(start):
     params = {
         "startdate": "01.01.2026",
-        "enddate": "31.12.2026",
+        "enddate": "30.06.2026",
         "art": "-1",
         "lv": "-1",
         "umkreis": "-1",
