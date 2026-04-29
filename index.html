@@ -502,7 +502,7 @@ function renderMarkers(events) {
     const marker = L.marker([e.lat, e.lng], { icon: makeIcon(e.typ, past) });
     marker.bindPopup(`
       <div class="popup-title">${e.titel||'–'}</div>
-      <div class="popup-meta">${e.datum}${e.startzeit?' · '+e.startzeit+' Uhr':''}</div>
+      <div class="popup-meta">${e.datum}</div>
       <div class="popup-meta">${ort}</div>
       <div class="popup-meta">${e.startort}</div>
       ${past?'<div class="popup-past">Termin bereits vergangen</div>':''}
@@ -555,7 +555,7 @@ function locateUser() {
       // Blauen Punkt für User-Standort erstellen
       const userIcon = L.divIcon({
         className: 'user-location-dot',
-        iconSize: [12, 12],
+        iconSize: [14, 14],
         iconAnchor: [6, 6]
       });
 
