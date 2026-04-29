@@ -7,6 +7,7 @@
   <meta name="description" content="Alle RTF, Radmarathon, CTF und Gravelrides in Deutschland auf einer interaktiven Karte. Breitensportkalender mit Kartenansicht.">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
+    /* ... Dein bestehender CSS-Code ... */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -248,27 +249,30 @@
 
 
     .user-location-dot {
-  width: 12px;
-  height: 12px;
-  background: #2196F3;
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
-}
+      width: 12px;
+      height: 12px;
+      background: #2196F3;
+      border: 2px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
+    }
 
-    /* Styling für die neue Orts-Zeile */
-.event-location-row {
-  font-size: 11px;
-  color: #888; /* Ein mittleres Grau, gut lesbar */
-  margin-top: 1px;
-  transition: color 0.3s;
-}
+    .event-location-row {
+      font-size: 11px;
+      color: #888;
+      margin-top: 1px;
+      transition: color 0.3s;
+    }
 
-/* Im Dark Mode etwas heller */
-body.dark .event-location-row {
-  color: #777;
-}
-    
+    body.dark .event-location-row {
+      color: #777;
+    }
+
+    /* NEU: Styling für den Zoom-Effekt der Marker */
+    .marker-pin {
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-origin: center center;
+    }
   </style>
 </head>
 <body>
@@ -295,294 +299,4 @@ body.dark .event-location-row {
       <option value="volk">Volksradfahren</option>
     </select>
     <input type="date" id="filter-von" title="Von Datum">
-    <input type="date" id="filter-bis" title="Bis Datum">
-
-    <label class="toggle-wrap">
-      <span class="toggle">
-        <input type="checkbox" id="toggle-past">
-        <span class="toggle-slider"></span>
-      </span>
-      Vergangene anzeigen
-    </label>
-
-    <label class="toggle-wrap">
-      <span class="toggle">
-        <input type="checkbox" id="toggle-dark">
-        <span class="toggle-slider"></span>
-      </span>
-      Dark Mode
-    </label>
-  </div>
-
-  <div class="stats"><span id="count">–</span> Termine</div>
-</header>
-
-<div class="layout">
-  <div id="map"></div>
-  <div class="sidebar">
-    <div class="sidebar-head" id="sidebar-head">Termine werden geladen…</div>
-    <div class="event-list" id="event-list">
-      <div class="loading">Daten werden geladen…</div>
-    </div>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#1a7a55"></div>RTF</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#c0441a"></div>Marathon</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#2266cc"></div>CTF</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#a06010"></div>Gravel</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#888"></div>Sonstige</div>
-    </div>
-    <div class="footer-links">
-      <a href="#" onclick="showModal('impressum')">Impressum</a>
-      <a href="#" onclick="showModal('datenschutz')">Datenschutz</a>
-      <a href="https://breitensport.rad-net.de/breitensportkalender/" target="_blank">Quelle: rad-net.de</a>
-    </div>
-  </div>
-</div>
-
-<!-- Impressum Modal -->
-<div class="modal-overlay" id="modal-impressum">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('impressum')">✕</button>
-    <h2>Impressum</h2>
-    <h3>Angaben gemäß § 5 TMG</h3>
-    <p>Alexander Gerasch<br>Wackenbergstraße 24<br>13156 Berlin</p>
-    <h3>Kontakt</h3>
-    <p>E-Mail: <a href="mailto:gerasch.alexander@gmail.com">gerasch.alexander@gmail.com</a></p>
-    <h3>Haftungsausschluss</h3>
-    <p>Diese Webseite ist ein privates Hobbyprojekt. Die Termine werden automatisch von <a href="https://breitensport.rad-net.de/breitensportkalender/" target="_blank">rad-net.de</a> verlinkt. Für die Richtigkeit, Vollständigkeit und Aktualität der verlinkten Inhalte übernehme ich keine Gewähr.</p>
-    <h3>Urheberrecht</h3>
-    <p>Kartengrundlage: © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>-Mitwirkende.</p>
-  </div>
-</div>
-
-<!-- Datenschutz Modal -->
-<div class="modal-overlay" id="modal-datenschutz">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('datenschutz')">✕</button>
-    <h2>Datenschutzerklärung</h2>
-    <h3>Verantwortlicher</h3>
-    <p>Alexander Gerasch, Wackenbergstraße 24, 13156 Berlin<br>
-    E-Mail: <a href="mailto:gerasch.alexander@gmail.com">gerasch.alexander@gmail.com</a></p>
-    <h3>Erhobene Daten</h3>
-    <p>Diese Webseite erhebt selbst keine personenbezogenen Daten und setzt keine Cookies ein.</p>
-    <h3>OpenStreetMap</h3>
-    <p>Die Kartengrundlage wird von <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> bereitgestellt. Beim Laden der Karte wird eine Verbindung zu den Servern der OpenStreetMap Foundation hergestellt. Dabei kann Ihre IP-Adresse übertragen werden. Weitere Informationen: <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank">Datenschutzerklärung der OSMF</a>.</p>
-    <h3>GitHub Pages</h3>
-    <p>Diese Webseite wird über GitHub Pages gehostet. Beim Abruf können von GitHub Verbindungsdaten gespeichert werden. Weitere Informationen: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank">Datenschutzerklärung von GitHub</a>.</p>
-    <h3>Verlinkung zu rad-net.de</h3>
-    <p>Alle Termine verlinken auf <a href="https://breitensport.rad-net.de" target="_blank">breitensport.rad-net.de</a>. Beim Aufrufen dieser Links gelten die Datenschutzbestimmungen von rad-net.de.</p>
-    <h3>Ihre Rechte</h3>
-    <p>Da wir keine personenbezogenen Daten speichern, sind Auskunfts- und Löschrechte hier nicht anwendbar. Bei Fragen: <a href="mailto:gerasch.alexander@gmail.com">gerasch.alexander@gmail.com</a></p>
-  </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const COLORS = {
-  rtf: "#1a7a55", marathon: "#c0441a", ctf: "#2266cc",
-  gravel: "#a06010", vrtf: "#7744aa", volk: "#e07020", sonstige: "#888"
-};
-
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
-
-function parseDate(datumStr) {
-  if (!datumStr) return null;
-  const m = datumStr.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  if (!m) return null;
-  return new Date(`${m[3]}-${m[2]}-${m[1]}`);
-}
-
-function isPast(e) {
-  const d = parseDate(e.datum);
-  return d ? d < TODAY : false;
-}
-
-function showModal(name) { document.getElementById('modal-'+name).classList.add('active'); event.preventDefault(); }
-function closeModal(name) { document.getElementById('modal-'+name).classList.remove('active'); }
-
-document.addEventListener('click', function(e) {
-  ['impressum','datenschutz'].forEach(name => {
-    const o = document.getElementById('modal-'+name);
-    if (e.target === o) o.classList.remove('active');
-  });
-});
-
-// Karte
-const map = L.map("map").setView([51.2, 10.4], 6);
-
-const lightLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende'
-});
-
-const darkLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende © <a href="https://carto.com/">CARTO</a>'
-});
-
-lightLayer.addTo(map);
-
-// Dark Mode
-const darkToggle = document.getElementById('toggle-dark');
-
-function applyDarkMode(dark) {
-  if (dark) {
-    document.body.classList.add('dark');
-    map.removeLayer(lightLayer);
-    darkLayer.addTo(map);
-  } else {
-    document.body.classList.remove('dark');
-    map.removeLayer(darkLayer);
-    lightLayer.addTo(map);
-  }
-  localStorage.setItem('darkMode', dark);
-}
-
-// Gespeicherte Einstellung laden
-if (localStorage.getItem('darkMode') === 'true') {
-  darkToggle.checked = true;
-  applyDarkMode(true);
-}
-
-darkToggle.addEventListener('change', function() {
-  applyDarkMode(this.checked);
-});
-
-let allEvents = [];
-let markers = L.layerGroup().addTo(map);
-
-function makeIcon(typ, past) {
-  const color = past ? "#666" : (COLORS[typ] || COLORS.sonstige);
-  return L.divIcon({
-    className: "",
-    html: `<div style="width:11px;height:11px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25)"></div>`,
-    iconSize: [11, 11],
-    iconAnchor: [5.5, 5.5]
-  });
-}
-
-function renderList(events) {
-  const list = document.getElementById("event-list");
-  document.getElementById("count").textContent = events.length;
-  document.getElementById("sidebar-head").textContent = `${events.length} Termine`;
-
-  if (!events.length) {
-    list.innerHTML = `<div class="loading">Keine Termine gefunden</div>`;
-    return;
-  }
-
-  list.innerHTML = events.map(e => {
-    const past = isPast(e);
-    const color = past ? "#888" : (COLORS[e.typ] || COLORS.sonstige);
-    
-    // Hier definieren wir, was in der Meta-Zeile (Datum) 
-    // und was in der neuen Orts-Zeile stehen soll
-    const plz = e.plz || "";
-    const stadt = e.startort || e.ort || "";
-    const ortsInfo = `${plz} ${stadt}`.trim();
-
-    return `<a class="event-item${past?' past':''}" href="${e.url}" target="_blank">
-      <div class="event-dot" style="background:${color}"></div>
-      <div class="event-info">
-        <div class="event-name">${e.titel || 'Unbenannter Termin'}</div>
-        <div class="event-meta">${e.datum}</div>
-        <div class="event-location-row">${ortsInfo || 'Ort unbekannt'}</div>
-      </div>
-      <div class="ext">↗</div>
-    </a>`;
-  }).join("");
-  
-}
-
-function renderMarkers(events) {
-  markers.clearLayers();
-  events.forEach(e => {
-    if (!e.lat || !e.lng) return;
-    const past = isPast(e);
-    const ort = e.startort || e.ort || e.verein || "";
-    const marker = L.marker([e.lat, e.lng], { icon: makeIcon(e.typ, past) });
-    marker.bindPopup(`
-      <div class="popup-title">${e.titel||'–'}</div>
-      <div class="popup-meta">${e.datum}${e.startzeit?' · '+e.startzeit+' Uhr':''}</div>
-      <div class="popup-meta">${ort}</div>
-      <div class="popup-meta">${e.startort}</div>
-      ${past?'<div class="popup-past">Termin bereits vergangen</div>':''}
-      <a class="popup-link" href="${e.url}" target="_blank">Details auf rad-net ↗</a>
-    `);
-    markers.addLayer(marker);
-  });
-}
-
-function applyFilters() {
-  const typ = document.getElementById("filter-typ").value;
-  const von = document.getElementById("filter-von").value;
-  const bis = document.getElementById("filter-bis").value;
-  const showPast = document.getElementById("toggle-past").checked;
-
-  let filtered = allEvents;
-  if (!showPast) filtered = filtered.filter(e => !isPast(e));
-  if (typ) filtered = filtered.filter(e => e.typ === typ);
-  if (von) { const d = new Date(von); filtered = filtered.filter(e => { const x = parseDate(e.datum); return x ? x >= d : true; }); }
-  if (bis) { const d = new Date(bis); filtered = filtered.filter(e => { const x = parseDate(e.datum); return x ? x <= d : true; }); }
-
-  renderList(filtered);
-  renderMarkers(filtered);
-}
-
-fetch("events.json")
-  .then(r => r.json())
-  .then(data => { allEvents = data; applyFilters(); })
-  .catch(() => {
-    document.getElementById("event-list").innerHTML = `<div class="loading">Fehler beim Laden der Daten</div>`;
-  });
-
-document.getElementById("filter-typ").addEventListener("change", applyFilters);
-document.getElementById("filter-von").addEventListener("change", applyFilters);
-document.getElementById("filter-bis").addEventListener("change", applyFilters);
-document.getElementById("toggle-past").addEventListener("change", applyFilters);
-
-
-  // Funktion zur Standortbestimmung
-function locateUser() {
-  if (!navigator.geolocation) {
-    console.log("Geolocation wird von deinem Browser nicht unterstützt.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      
-      // Blauen Punkt für User-Standort erstellen
-      const userIcon = L.divIcon({
-        className: 'user-location-dot',
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
-      });
-
-      // Marker zur Karte hinzufügen
-      L.marker([latitude, longitude], { icon: userIcon })
-        .addTo(map)
-        .bindPopup("Dein Standort")
-        .openPopup();
-
-      // Karte auf den User zentrieren (optional)
-      // map.setView([latitude, longitude], 10); 
-    },
-    (error) => {
-      console.warn(`Standortfehler (${error.code}): ${error.message}`);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0
-    }
-  );
-}
-
-// Standort direkt beim Laden abfragen
-locateUser();
-  
-</script>
-
-</body>
-</html>
+    <input type="date
