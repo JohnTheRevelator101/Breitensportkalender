@@ -78,7 +78,7 @@ def scrape_detail(url):
                 m = re.search(r'(\d{5})\s+([A-ZÄÖÜa-zäöüß\s\-]+)', value)
                 if m:
                     result["startort"] = f"{m.group(1)} {m.group(2).strip()}"
-            elif "startzeit" in label: result["startzeit"] = value
+            # elif "startzeit" in label: result["startzeit"] = value
             elif "internet" in label:
                 link = cells[1].find("a")
                 if link: result["webseite"] = link.get("href", "")
