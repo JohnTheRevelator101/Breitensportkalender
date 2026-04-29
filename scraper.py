@@ -57,7 +57,7 @@ def geocode(query):
     return None
 
 def scrape_detail(url):
-    result = {"startort": "", "startort_adresse": "", "startzeit": "", "webseite": "", "landesverband": ""}
+    result = {"startort": "", "startort_adresse": "", "webseite": "", "landesverband": ""}
     try:
         time.sleep(random.uniform(2.5, 4.5)) # Zufällige Pause gegen Bot-Erkennung
         resp = requests.get(url, headers=HEADERS, timeout=15)
@@ -97,7 +97,7 @@ def main():
     # Schritt 1: URLs sammeln (falls Liste leer)
     if not all_events:
         logging.info("Sammle URLs von Übersichtsseiten...")
-        for start in range(0, 300, 30): # Testweise erste 10 Seiten
+        for start in range(0, 750, 30): 
             params = {"startdate": "01.01.2026", "enddate": "31.12.2026", "lstart": str(start)}
             resp = requests.get(BASE_URL, params=params, headers=HEADERS)
             soup = BeautifulSoup(resp.text, "html.parser")
