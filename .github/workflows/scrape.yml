@@ -2,12 +2,13 @@ name: Termine aktualisieren
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Jeden Tag um 3 Uhr nachts
-  workflow_dispatch:      # Auch manuell startbar
+    - cron: '0 3 * * *' # Jeden Tag um 3 Uhr nachts
+  workflow_dispatch: # Auch manuell startbar
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 120 # Maximal 2 Stunden
 
     steps:
       - name: Repository laden
@@ -21,11 +22,14 @@ jobs:
       - name: Abhängigkeiten installieren
         run: pip install requests beautifulsoup4
 
-      - name: Scraper ausführen
-        run: python scraper.py
+      - name: Alte events.json löschen (Neustart erzwingen)
+        run: rm -f events_final.json
 
-      - name: Geocoding reparieren
-        run: python geocode_repair.py
+      - name: Scraper ausführen
+        run: python scraper_v2.py
+
+      - name: Ergebnis umbenennen
+        run: mv events_final.json events.json
 
       - name: events.json committen
         run: |
