@@ -2,13 +2,16 @@ name: Termine aktualisieren
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Jeden Tag um 3 Uhr nachts
-  workflow_dispatch: # Auch manuell startbar
+    - cron: '0 3 * * 1'  # Montag   03:00 - naechste 90 Tage
+    - cron: '0 3 * * 2'  # Dienstag 03:00 - 91-180 Tage
+    - cron: '0 3 * * 3'  # Mittwoch 03:00 - 181-270 Tage
+    - cron: '0 3 * * 4'  # Donnerstag 03:00 - 271-365 Tage
+  workflow_dispatch:      # Auch manuell startbar
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 120 # Maximal 2 Stunden
+    timeout-minutes: 90
 
     steps:
       - name: Repository laden
@@ -19,13 +22,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Abhängigkeiten installieren
+      - name: Abhaengigkeiten installieren
         run: pip install requests beautifulsoup4
 
-      - name: Alte events.json löschen (Neustart erzwingen)
-        run: rm -f events_final.json
-
-      - name: Scraper ausführen
+      - name: Scraper ausfuehren
         run: python scraper_v2.py
 
       - name: Ergebnis umbenennen
