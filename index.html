@@ -574,7 +574,10 @@ function renderList(events) {
     const stadt = e.startort || e.ort || "";
     const ortsInfo = `${plz} ${stadt}`.trim();
 
-    return `<a class="event-item${past?' past':''}" href="${e.url}" target="_blank">
+    return `<a class="event-item${past?' past':''}" href="${e.url}" target="_blank"
+        onmouseenter="previewEvent(${e.lat}, ${e.lng})"
+        onmouseleave="resetView()">
+        
       <div class="event-dot" style="background:${color}"></div>
       <div class="event-info">
         <div class="event-name">${e.titel || 'Unbenannter Termin'}</div>
@@ -636,6 +639,31 @@ document.getElementById("filter-typ").addEventListener("change", applyFilters);
 document.getElementById("filter-von").addEventListener("change", applyFilters);
 document.getElementById("filter-bis").addEventListener("change", applyFilters);
 
+
+
+let savedView = null;
+let previewCircle = null;
+
+function previewEvent(lat, lng) {
+  if (!lat || !lng) return;
+  savedView = { center: map.getCenter(), zoom: map.getZoom() };
+  map.setView([lat, lng], 10);
+  if (previewCircle) map.removeLayer(previewCircle);
+  previewCircle = L.circle([lat, lng], {
+    radius: 100000,
+    color: "#2d7a4f",
+    fillColor: "#2d7a4f",
+    fillOpacity: 0.05,
+    weight: 1.5,
+    dashArray: "6, 6",
+  }).addTo(map);
+}
+
+function resetView() {
+  if (savedView) map.setView(savedView.center, savedView.zoom);
+  if (previewCircle) { map.removeLayer(previewCircle); previewCircle = null; }
+  savedView = null;
+}
 
 
   
