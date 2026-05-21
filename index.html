@@ -575,8 +575,7 @@ function renderList(events) {
     const ortsInfo = `${plz} ${stadt}`.trim();
 
     return `<a class="event-item${past?' past':''}" href="${e.url}" target="_blank"
-        onmouseenter="previewEvent(${e.lat}, ${e.lng})"
-        onmouseleave="resetView()">
+        
         
       <div class="event-dot" style="background:${color}"></div>
       <div class="event-info">
